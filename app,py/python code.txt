@@ -1,0 +1,55 @@
+# Butterfly Data
+butterflies = {
+    "Monarch Butterfly": {
+        "image": "images/monarch.png",
+        "info": "Monarchs are famous for their long migration across North America. They have striking orange and black wings."
+    },
+    "Swallowtail Butterfly": {
+        "image": "images/swallowtail.png",
+        "info": "Swallowtails are large, colorful butterflies. They have tail-like extensions on their hindwings."
+    },
+    "Blue Morpho Butterfly": {
+        "image": "images/morpho.png",
+        "info": "The Blue Morpho is known for its vivid iridescent blue wings, mostly found in South and Central America."
+    }
+}
+
+# App Window
+app = tk.Tk()
+app.title("Enchanted Wings: Marvels of Butterfly Species")
+app.geometry("600x500")
+app.config(bg="#f0f8ff")
+
+# Heading
+title = tk.Label(app, text="🦋 Enchanted Wings 🦋", font=("Georgia", 20, "bold"), bg="#f0f8ff", fg="#333")
+title.pack(pady=10)
+
+# Dropdown
+selected = tk.StringVar()
+selected.set("Select a Butterfly")
+dropdown = ttk.Combobox(app, textvariable=selected, values=list(butterflies.keys()), state="readonly", font=("Arial", 12))
+dropdown.pack(pady=10)
+
+# Image Label
+img_label = tk.Label(app, bg="#f0f8ff")
+img_label.pack(pady=10)
+
+# Info Label
+info_label = tk.Label(app, text="", wraplength=500, justify="center", font=("Arial", 12), bg="#f0f8ff", fg="#444")
+info_label.pack(pady=10)
+
+# Load Butterfly Info
+def show_info(event=None):
+    name = selected.get()
+    if name in butterflies:
+        data = butterflies[name]
+        img = Image.open(data["image"])
+        img = img.resize((250, 180))
+        photo = ImageTk.PhotoImage(img)
+        img_label.configure(image=photo)
+        img_label.image = photo
+        info_label.config(text=data["info"])
+
+# Bind Dropdown
+dropdown.bind("<<ComboboxSelected>>", show_info)
+ 
