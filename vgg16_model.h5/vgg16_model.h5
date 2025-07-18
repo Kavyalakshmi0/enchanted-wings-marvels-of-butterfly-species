@@ -1,1 +1,198 @@
+(1)
 
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input, decode_predictions
+from tensorflow.keras.preprocessing import image
+import matplotlib.pyplot as plt
+
+# Load pre-trained VGG16 model + weights
+model = VGG16(weights='imagenet')
+
+# Load and process input image
+img_path = 'butterfly.jpg'  # Replace with your image path
+img = image.load_img(img_path, target_size=(224, 224))
+img_array = image.img_to_array(img)
+img_batch = np.expand_dims(img_array, axis=0)
+img_preprocessed = preprocess_input(img_batch)
+
+# Predict
+predictions = model.predict(img_preprocessed)
+decoded = decode_predictions(predictions, top=3)[0]
+
+# Show image
+plt.imshow(img)
+plt.axis('off')
+plt.title("Input Image")
+plt.show()
+
+
+
+OUTPUT:
+
+print("🦋 Top Predictions:")
+for i, (imagenet_id, label, score) in enumerate(decoded):
+    print(f"{i+1}. {label} ({score * 100:.2f}%)")
+
+(2)
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
+import numpy as np
+import os
+
+# Load trained model
+model = load_model('vgg16_model.h5')
+
+# Class labels
+class_labels = ['Monarch', 'Swallowtail', 'Painted Lady', 'Blue Morpho', 'Peacock']
+
+# Load and preprocess the input image
+def predict_butterfly_species(img_path):
+    img = image.load_img(img_path, target_size=(224, 224))
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array = tf.keras.applications.vgg16.preprocess_input(img_array)
+
+    # Make prediction
+    predictions = model.predict(img_array)
+    predicted_class = class_labels[np.argmax(predictions)]
+    confidence = np.max(predictions) * 100
+
+    print(f"Predicted Species: {predicted_class} ({confidence:.2f}%)")
+
+ input
+img_path = 'test_images/blue_morpho.jpg'
+predict_butterfly_species(img_path)
+
+OUTPUT:
+Predicted Species: Blue Morpho (96.78%)
+
+(3)
+import tensorflow as tf
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.vgg16 import preprocess_input
+import numpy as np
+
+# Load model and labels
+model = tf.keras.models.load_model("vgg16_model.h5")
+with open("butterfly_labels.txt", "r") as f:
+    class_names = [line.strip() for line in f.readlines()]
+
+def predict_species(img_path):
+    img = image.load_img(img_path, target_size=(224, 224))
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_preprocessed = preprocess_input(img_array)
+
+    prediction = model.predict(img_preprocessed)
+    predicted_class = class_names[np.argmax(prediction)]
+    confidence = np.max(prediction)
+
+    print(f"Image: {img_path}")
+    print(f"Predicted Species: {predicted_class}")
+    print(f"Confidence: {confidence:.2f}")
+
+ input
+predict_species("test_images/monarch.jpg")
+predict_species("test_images/swallowtail.jpg")
+
+OUTPUT
+Image: test_images/monarch.jpg
+Predicted Species: Monarch
+Confidence: 0.97
+
+Image: test_images/swallowtail.jpg
+Predicted Species: Swallowtail
+Confidence: 0.95
+
+(4)
+
+import tensorflow as tf
+import numpy as np
+from tensorflow.keras.preprocessing import image
+import os
+
+# Load model
+model = tf.keras.models.load_model('butterfly_model.h5')
+
+# Class indices (must match training order)
+class_names = ['Danaus', 'Papilio', 'Pieris', 'Monarch', 'Swallowtail'] 
+
+# Load and preprocess image
+img_path = 'sample_butterfly.jpg'
+img = image.load_img(img_path, target_size=(128, 128))
+img_array = image.img_to_array(img) / 255.0
+img_array = np.expand_dims(img_array, axis=0)
+
+# Predict
+pred = model.predict(img_array)
+class_index = np.argmax(pred)
+print("Predicted Butterfly Species:", class_names[class_index])
+
+OUTPUT:
+Found 500 images belonging to 5 classes.
+Found 100 images belonging to 5 classes.
+Epoch 1/10 ...
+...
+Predicted Butterfly Species: Monarch
+
+(5)
+# enchanted_wings_classifier.py
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import matplotlib.pyplot as plt
+
+# Step 1: Image Preprocessing
+train_path = "dataset/train"
+test_path = "dataset/test"
+
+train_gen = ImageDataGenerator(rescale=1./255)
+test_gen = ImageDataGenerator(rescale=1./255)
+
+train_data = train_gen.flow_from_directory(train_path, target_size=(100, 100), class_mode='categorical')
+test_data = test_gen.flow_from_directory(test_path, target_size=(100, 100), class_mode='categorical')
+
+# Step 2: CNN Model
+model = Sequential([
+    Conv2D(32, (3, 3), activation='relu', input_shape=(100, 100, 3)),
+    MaxPooling2D(2, 2),
+    
+    Conv2D(64, (3, 3), activation='relu'),
+    MaxPooling2D(2, 2),
+    
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dropout(0.3),
+    Dense(train_data.num_classes, activation='softmax')
+])
+
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Step 3: Training the Model
+history = model.fit(train_data, validation_data=test_data, epochs=10)
+
+# Step 4: Save the Model
+model.save("enchanted_wings_model.h5")
+
+# Step 5: Plot Accuracy
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title("Enchanted Wings Classification Accuracy")
+plt.xlabel("Epochs")
+plt.ylabel("Accuracy")
+plt.legend()
+plt.show()
+
+OUTPUT:
+Found 300 images belonging to 3 classes.
+Found 90 images belonging to 3 classes.
+Epoch 1/10
+...
+Epoch 10/10
+Training Accuracy: 0.93
+Validation Accuracy: 0.90
+Model saved as enchanted_wings_model.h5
